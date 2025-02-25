@@ -1,66 +1,99 @@
 include raylib as rl
 
 const grid_state = {
-	EMPTY = 0,
-	X = 1,
-	Y = 2
+  EMPTY = 0,
+  X = 1,
+  O = 2
 }
 
 struct Grid(i, grid_state)
-	.i = i
-	.state = grid_state.EMPTY
-	.is_hovered = false
+  .i = i
+  .state = grid_state.EMPTY
+  .is_hovered = false
 
-define update_grid(grid)
-	const mpos = rl:mouse_pos()
-	if grid.state != grid_state.EMPTY then return
-	if (mpos.x > (grid.i % 3) * GRID_SIZE and
-			mpos.x < (grid.i % 3 + 1) * GRID_SIZE and
-			mpos.y > (grid.i / 3) * GRID_SIZE and
-			mpos.y < (grid.i / 3 + 1) * GRID_SIZE)
-		grid.is_hovered = true
-		if rl:is_mouse_pressed(0)
-      grid.state = ORDER
-      ORDER = if ORDER == grid_state.X then grid_state.Y else grid_state.X
-      grid.is_hovered = false
-	else grid.is_hovered = false
+define update_grids(grids)
+  for grid in grids
+    if grid.state != grid_state.EMPTY then skip
+    const mpos = rl:mouse_pos()
+    if (mpos.x > (grid.i % 3) * GRID_SIZE and
+        mpos.x < (grid.i % 3 + 1) * GRID_SIZE and
+        mpos.y > (grid.i / 3) * GRID_SIZE and
+        mpos.y < (grid.i / 3 + 1) * GRID_SIZE)
+      grid.is_hovered = true
+      if rl:is_mouse_pressed(0)
+        grid.is_hovered = false
+        grid.state = ORDER
+        if not check_win(grids)
+          ORDER = if ORDER == grid_state.X then grid_state.O else grid_state.X
+        else GAME_OVER = true
+    else grid.is_hovered = false
 
 define draw_grid(grid, textures)
-	const cl = if grid.is_hovered then 200 else 255
-	rl:draw_texture(textures[grid.state],
-									(grid.i % 3) * GRID_SIZE,
-									(grid.i / 3) * GRID_SIZE,
-									rl:color(cl, cl, cl, 255))
+  const cl = if grid.is_hovered then 200 else 255
+  rl:draw_texture(textures[grid.state],
+                  (grid.i % 3) * GRID_SIZE,
+                  (grid.i / 3) * GRID_SIZE,
+                  rl:color(cl, cl, cl, 255))
+
+define check_win(grids)
+  if ((grids[0].state != grid_state.EMPTY and
+       grids[0].state == grids[1].state and
+       grids[0].state == grids[2].state) or
+      (grids[0].state != grid_state.EMPTY and
+       grids[0].state == grids[4].state and
+       grids[0].state == grids[8].state) or
+      (grids[0].state != grid_state.EMPTY and
+       grids[0].state == grids[3].state and
+       grids[0].state == grids[6].state) or
+      (grids[1].state != grid_state.EMPTY and
+       grids[1].state == grids[4].state and
+       grids[1].state == grids[7].state) or
+      (grids[2].state != grid_state.EMPTY and
+       grids[2].state == grids[5].state and
+       grids[2].state == grids[8].state) or
+      (grids[2].state != grid_state.EMPTY and
+       grids[2].state == grids[4].state and
+       grids[2].state == grids[6].state) or
+      (grids[3].state != grid_state.EMPTY and
+       grids[3].state == grids[4].state and
+       grids[3].state == grids[5].state) or
+      (grids[6].state != grid_state.EMPTY and
+       grids[6].state == grids[7].state and
+       grids[6].state == grids[8].state))
+    writeln(format('% has won', if ORDER == grid_state.X then 'X' else 'O'))
+    return true
+  return false
 
 const
-	GRID_SIZE = 96
-	WIDTH = GRID_SIZE * 3
-	HEIGHT = GRID_SIZE * 3
-	TITLE = 'Hello, Seal'
-	FPS = 60
+  GRID_SIZE = 128
+  WIDTH = GRID_SIZE * 3
+  HEIGHT = GRID_SIZE * 3
+  TITLE = 'Hello, Seal'
+  FPS = 60
 
 rl:init_window(WIDTH, HEIGHT, TITLE)
 rl:set_fps(FPS)
 
 const textures = [
-	rl:load_texture('assets/emptygrid.png'),
-	rl:load_texture('assets/xgrid.png'),
-	rl:load_texture('assets/ygrid.png')
+  rl:load_texture('assets/emptygrid.png'),
+  rl:load_texture('assets/xgrid.png'),
+  rl:load_texture('assets/ogrid.png')
 ]
 
 const grids = []
 for i in 9
-	push(grids, Grid(i, grid_state))
+  push(grids, Grid(i, grid_state))
 
 var ORDER = grid_state.X
+var GAME_OVER = false
 
 while not rl:window_should_close()
-	for grid in grids
-		update_grid(grid)
-	rl:begin_drawing()
-	rl:clear_background(rl:color(255, 255, 255, 255))
-	for grid in grids
-		draw_grid(grid, textures)
-	rl:end_drawing()
+  if not GAME_OVER
+    update_grids(grids)
+  rl:begin_drawing()
+  rl:clear_background(rl:color(255, 255, 255, 255))
+  for grid in grids
+    draw_grid(grid, textures)
+  rl:end_drawing()
 
 rl:close_window()
