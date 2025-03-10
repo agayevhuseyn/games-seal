@@ -68,7 +68,7 @@ const
   GRID_SIZE = 128
   WIDTH = GRID_SIZE * 3
   HEIGHT = GRID_SIZE * 3
-  TITLE = 'Hello, Seal'
+  TITLE = 'XOX in Seal'
   FPS = 60
 
 rl:init_window(WIDTH, HEIGHT, TITLE)

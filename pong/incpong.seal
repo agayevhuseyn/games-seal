@@ -1,0 +1,162 @@
+include math
+include './raylib.seal'
+
+define Ball(x, y, dx, size, speed)
+	return {
+    x = x,
+    y = y,
+    dx = -1,
+    dy = 0,
+    size = size,
+    speed = speed
+  }
+
+define Pad(x, y, w, h, speed)
+  return {
+    x = x,
+    y = y,
+    w = w,
+    h = h,
+    speed = speed
+  }
+
+define late_update()
+  draw_rectangle(ball.x, ball.y, ball.size, ball.size, color(255, 255, 255, 255))
+  draw_rectangle(lpad.x, lpad.y, lpad.w, lpad.h, color(255, 255, 255, 255))
+  draw_rectangle(rpad.x, rpad.y, rpad.w, rpad.h, color(255, 255, 255, 255))
+
+define ball_update(dt)
+  if is_ball_out
+    if timer < 1
+      timer = timer + dt
+    else
+      is_ball_out = false
+      timer = 0
+      ball.x = start_x
+      ball.y = start_y 
+      ball.dy = 0
+      if ball.dx < 0 then ball.dx = -1 else ball.dx = 1
+
+  ball.x = ball.x + ball.dx * ball.speed * dt
+  ball.y = ball.y + ball.dy * ball.speed * dt
+
+  if (ball.x < 0 or ball.x + ball.size > WIDTH) and not is_ball_out
+    is_ball_out = true
+    ball.speed = ball_start_speed
+    if ball.x < 0
+      score_right = score_right + 1
+    else
+      score_left = score_left + 1
+    writeln(score_left, ":", score_right)
+  if ball.y < 0
+    ball.y = 0
+    ball.dy = -ball.dy
+  else if ball.y + ball.size > HEIGHT
+    ball.y = HEIGHT - ball.size
+    ball.dy = -ball.dy
+	
+  if (
+    ball.x < lpad.x + lpad.w and
+    ball.x + ball.size > lpad.x and
+    ball.y < lpad.y + lpad.h and
+    ball.y + ball.size > lpad.y)
+    ball.x = lpad.x + lpad.w
+    ball.dx = -ball.dx
+    if ball.y + ball.size / 2 > lpad.y + lpad.h / 2
+      ball.dy = clamp(0, 0.8, (((ball.y + ball.size / 2) - (lpad.y + lpad.h / 2)) / (lpad.h / 2)))
+    else
+      ball.dy = clamp(-0.8, 0, (((ball.y + ball.size / 2) - (lpad.y + lpad.h / 2)) / (lpad.h / 2)))
+    normalize_ball()
+
+  else if (
+    ball.x < rpad.x + rpad.w and
+    ball.x + ball.size > rpad.x and
+    ball.y < rpad.y + rpad.h and
+    ball.y + ball.size > rpad.y)
+    ball.x = rpad.x - ball.size
+    ball.dx = -ball.dx
+    if ball.y + ball.size / 2 > rpad.y + rpad.h / 2
+      ball.dy = clamp(0, 0.8, (((ball.y + ball.size / 2) - (rpad.y + rpad.h / 2)) / (rpad.h / 2)))
+    else
+      ball.dy = clamp(-0.8, 0, (((ball.y + ball.size / 2) - (rpad.y + rpad.h / 2)) / (rpad.h / 2)))
+    normalize_ball()
+
+define pad_update(dt)
+  var ldy = 0, rdy = 0
+  if is_key_down(83)
+    ldy = ldy + 1
+  if is_key_down(87)
+    ldy = ldy - 1
+  if is_key_down(264)
+    rdy = rdy + 1
+  if is_key_down(265)
+    rdy = rdy - 1
+
+  lpad.y = lpad.y + lpad.speed * ldy * dt
+  rpad.y = rpad.y + rpad.speed * rdy * dt
+
+  if lpad.y < 0
+    lpad.y = 0
+  else if lpad.y + lpad.h > HEIGHT
+    lpad.y = HEIGHT - lpad.h
+  if rpad.y < 0
+    rpad.y = 0
+  else if rpad.y + rpad.h > HEIGHT
+    rpad.y = HEIGHT - rpad.h
+
+define normalize_ball()
+  ball.speed = ball_game_speed
+  var is_neg = ball.dx < 0
+  ball.dx = math:sqrt(1 - ball.dy * ball.dy)
+  if is_neg
+    ball.dx = -ball.dx
+
+define clamp(min, max, val)
+  if max < min
+    writeln("clamp function: max is less than min")
+  if val < min
+    return min
+  else if val > max
+    return max
+  return val
+
+define update(dt)
+	ball_update(dt)
+	pad_update(dt)
+
+const
+  WIDTH = 800
+  HEIGHT = 600
+  FPS = 60
+  TITLE = "Pong by Huseyn Agayev"
+var
+  score_left = 0
+  score_right = 0
+  timer = 0
+  is_ball_out = false
+
+init_window(WIDTH, HEIGHT, TITLE)
+set_fps(FPS)
+
+// ball
+const
+  start_x = (WIDTH - 16) / 2
+  start_y = (HEIGHT - 16) / 2
+  ball_start_speed = 400
+  ball_game_speed = 800
+const ball = Ball(start_x, start_y, 1, 16, ball_start_speed)
+
+// pads
+const
+  lpad = Pad(32, HEIGHT - 128 / 2, 16, 128, 550)
+  rpad = Pad(WIDTH - 16 - 32, HEIGHT - 128 / 2, 16, 128, 550)
+
+while not window_should_close()
+  update(delta_time())
+
+  begin_drawing()
+  clear_background(color(0, 0, 0, 255))
+  late_update()
+  end_drawing()
+
+close_window()

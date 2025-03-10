@@ -1,0 +1,8 @@
+extern const
+  GRID_SIZE = 32
+  GRID_X = 16
+  GRID_Y = 16
+  WIDTH = GRID_X * GRID_SIZE
+  HEIGHT = GRID_Y * GRID_SIZE
+  TITLE = 'Snake in Seal'
+  FPS = 60

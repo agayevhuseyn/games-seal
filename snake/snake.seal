@@ -1,0 +1,89 @@
+include './raylib.seal'
+include './config.seal'
+
+const time = .2
+var timer = 0, turned = false
+
+extern define Snake(x, y)
+  return {
+    dir = {
+      x = 1,
+      y = 0
+    },
+    bodies = [{x = x, y = y}]
+  }
+
+define move_snake(snake)
+  const
+    copy = [null]
+    size = len(snake.bodies)
+
+  for i in 1 to size
+    push(copy, snake.bodies[i - 1])
+
+  copy[0] = snake.bodies[size - 1]
+  copy[0].x = copy[1].x
+  copy[0].y = copy[1].y
+
+  snake.bodies = copy
+
+extern define push_snake_body(snake)
+  push(
+    snake.bodies,
+    {
+      x = snake.bodies[0].x + snake.dir.x,
+      y = snake.bodies[0].y + snake.dir.y
+    }
+  )
+  move_snake(snake)
+  snake.bodies[0].x = snake.bodies[0].x + snake.dir.x
+  snake.bodies[0].y = snake.bodies[0].y + snake.dir.y
+
+extern define update_snake(snake, dt)
+  if !turned
+    if is_key_down(keys.KEY_D) and (snake.dir.x != -1 or
+                                    len(snake.bodies) == 1)
+      snake.dir.x = 1
+      snake.dir.y = 0
+      turned = true
+    else if is_key_down(keys.KEY_A) and (snake.dir.x != 1 or
+                                    len(snake.bodies) == 1)
+      snake.dir.x = -1
+      snake.dir.y = 0
+      turned = true
+    else if is_key_down(keys.KEY_W) and (snake.dir.y != 1 or
+                                    len(snake.bodies) == 1)
+      snake.dir.x = 0
+      snake.dir.y = -1
+      turned = true
+    else if is_key_down(keys.KEY_S) and (snake.dir.y != -1 or
+                                    len(snake.bodies) == 1)
+      snake.dir.x = 0
+      snake.dir.y = 1
+      turned = true
+
+  if timer > time
+    turned = false
+    timer = 0
+
+    if len(snake.bodies) > 1 then move_snake(snake)
+
+    var head = snake.bodies[0]
+
+    head.x = head.x + snake.dir.x
+    head.y = head.y + snake.dir.y
+
+    if head.x > GRID_X - 1 then head.x = 0
+    else if head.x < 0 then head.x = GRID_X - 1
+
+    if head.y > GRID_Y - 1 then head.y = 0
+    else if head.y < 0 then head.y = GRID_Y - 1
+
+  else timer = timer + dt
+
+extern define draw_snake(snake)
+  for body in snake.bodies
+    const
+      x = body.x
+      y = body.y
+    draw_rectangle(x * GRID_SIZE, y * GRID_SIZE, GRID_SIZE, GRID_SIZE, color(255, 255, 255, 255))

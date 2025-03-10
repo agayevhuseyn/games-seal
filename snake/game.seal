@@ -1,0 +1,28 @@
+include './raylib.seal'
+include './config.seal'
+include './snake.seal'
+include './food.seal'
+
+init_window(WIDTH, HEIGHT, TITLE)
+set_fps(FPS)
+
+const
+  snake = Snake(GRID_X / 2, GRID_Y / 2)
+  food  = Food(0, 0)
+
+while not window_should_close()
+  const dt = delta_time()
+
+  update_snake(snake, dt)
+  if (snake.bodies[0].x == food.x and
+      snake.bodies[0].y == food.y)
+    push_snake_body(snake)
+    replace_food(food)
+
+  begin_drawing()
+  clear_background(color(0, 0, 0, 255))
+  draw_food(food)
+  draw_snake(snake)
+  end_drawing()
+
+close_window()
