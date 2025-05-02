@@ -6,10 +6,12 @@ const grid_state = {
   O = 2
 }
 
-struct Grid(i, grid_state)
-  .i = i
-  .state = grid_state.EMPTY
-  .is_hovered = false
+define Grid(i)
+  return {
+    i = i,
+    state = grid_state.EMPTY,
+    is_hovered = false
+  }
 
 define update_grids(grids)
   for grid in grids
@@ -25,7 +27,9 @@ define update_grids(grids)
         grid.state = ORDER
         if not check_win(grids)
           ORDER = if ORDER == grid_state.X then grid_state.O else grid_state.X
-        else GAME_OVER = true
+        else
+          GAME_OVER = true
+          writeln(format('% has won', if ORDER == grid_state.X then 'X' else 'O'))
     else grid.is_hovered = false
 
 define draw_grid(grid, textures)
@@ -60,7 +64,6 @@ define check_win(grids)
       (grids[6].state != grid_state.EMPTY and
        grids[6].state == grids[7].state and
        grids[6].state == grids[8].state))
-    writeln(format('% has won', if ORDER == grid_state.X then 'X' else 'O'))
     return true
   return false
 
@@ -82,7 +85,7 @@ const textures = [
 
 const grids = []
 for i in 9
-  push(grids, Grid(i, grid_state))
+  push(grids, Grid(i))
 
 var ORDER = grid_state.X
 var GAME_OVER = false
