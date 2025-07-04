@@ -1,0 +1,113 @@
+include raylib as rl
+
+$grid_state = {
+    EMPTY = 0,
+    X = 1,
+    O = 2
+}
+
+
+define Grid(i)
+    return {
+        i = i,
+        state = grid_state.EMPTY,
+        is_hovered = false
+    }
+
+
+define update_grids(grids)
+    for grid in grids
+        if grid.state != grid_state.EMPTY then skip
+        mpos = rl.mouse_pos()
+        if (
+            mpos.x > (grid.i % 3) * GRID_SIZE and
+            mpos.x < (grid.i % 3 + 1) * GRID_SIZE and
+            mpos.y > (grid.i / 3) * GRID_SIZE and
+            mpos.y < (grid.i / 3 + 1) * GRID_SIZE
+        )
+            grid.is_hovered = true
+
+            if rl.is_mouse_pressed(0)
+                grid.is_hovered = false
+                grid.state = ORDER
+                if not check_win(grids)
+                    if $ORDER == grid_state.X
+                        $ORDER = grid_state.O
+                    else
+                        $ORDER = grid_state.X
+                else
+                    $GAME_OVER = true
+                    //print(format('% has won', if ORDER == grid_state.X then 'X' else 'O'))
+        else
+            grid.is_hovered = false
+
+define draw_grid(grid, textures)
+    if grid.is_hovered
+        cl = 200
+    else
+        cl = 255
+
+    rl.draw_texture(textures[grid.state],
+                    (grid.i % 3) * GRID_SIZE,
+                    (grid.i / 3) * GRID_SIZE,
+                    rl.Color(cl, cl, cl, 255))
+
+define check_win(grids)
+    return ((grids[0].state != grid_state.EMPTY and
+             grids[0].state == grids[1].state and
+             grids[0].state == grids[2].state) or
+            (grids[0].state != grid_state.EMPTY and
+             grids[0].state == grids[4].state and
+             grids[0].state == grids[8].state) or
+            (grids[0].state != grid_state.EMPTY and
+             grids[0].state == grids[3].state and
+             grids[0].state == grids[6].state) or
+            (grids[1].state != grid_state.EMPTY and
+             grids[1].state == grids[4].state and
+             grids[1].state == grids[7].state) or
+            (grids[2].state != grid_state.EMPTY and
+             grids[2].state == grids[5].state and
+             grids[2].state == grids[8].state) or
+            (grids[2].state != grid_state.EMPTY and
+             grids[2].state == grids[4].state and
+             grids[2].state == grids[6].state) or
+            (grids[3].state != grid_state.EMPTY and
+             grids[3].state == grids[4].state and
+             grids[3].state == grids[5].state) or
+            (grids[6].state != grid_state.EMPTY and
+             grids[6].state == grids[7].state and
+             grids[6].state == grids[8].state))
+
+
+$GRID_SIZE = 128
+$WIDTH = GRID_SIZE * 3
+$HEIGHT = GRID_SIZE * 3
+$TITLE = 'XOX in Seal'
+$FPS = 60
+
+rl.init_window(WIDTH, HEIGHT, TITLE)
+rl.set_fps(FPS)
+
+textures = [
+    rl.load_texture('assets/emptygrid.png'),
+    rl.load_texture('assets/xgrid.png'),
+    rl.load_texture('assets/ogrid.png')
+]
+
+$grids = []
+for i in 9
+    push(grids, Grid(i))
+
+$ORDER = grid_state.X
+$GAME_OVER = false
+
+while not rl.window_should_close()
+    if not $GAME_OVER
+        update_grids(grids)
+    rl.begin_drawing()
+    rl.clear_background(rl.colors.WHITE)
+    for grid in grids
+        draw_grid(grid, textures)
+    rl.end_drawing()
+
+rl.close_window()
