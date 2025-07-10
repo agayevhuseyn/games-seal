@@ -1,22 +1,24 @@
-include './raylib.seal'
-include './config.seal'
+include raylib as rl
+include config
 
 // add random
-extern define Food(x, y)
-  return {
-    x = x,
-    y = y
-  }
+define Food(x, y)
+    food = {
+      x = x,
+      y = y
+    }
 
-extern define replace_food(food)
-  food.x = food.x + 1
-  food.y = food.y + 1
+    food.replace = define(self)
+      self.x += 1
+      self.y += 1
 
-extern define draw_food(food)
-  draw_rectangle(
-    food.x * GRID_SIZE,
-    food.y * GRID_SIZE,
-    GRID_SIZE,
-    GRID_SIZE,
-    color(255, 0, 0, 255)
-  )
+    food.draw = define(self)
+      rl.draw_rectangle(
+        self.x * config.GRID_SIZE,
+        self.y * config.GRID_SIZE,
+        config.GRID_SIZE,
+        config.GRID_SIZE,
+        rl.Color(255, 0, 0, 255)
+      )
+
+    return food

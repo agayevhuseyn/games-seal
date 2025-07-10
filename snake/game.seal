@@ -1,28 +1,27 @@
-include './raylib.seal'
-include './config.seal'
-include './snake.seal'
-include './food.seal'
+include raylib as rl
+include config
+include snake as s
+include food as f
 
-init_window(WIDTH, HEIGHT, TITLE)
-set_fps(FPS)
+rl.init_window(config.WIDTH, config.HEIGHT, config.TITLE)
+rl.set_fps(config.FPS)
 
-const
-  snake = Snake(GRID_X / 2, GRID_Y / 2)
-  food  = Food(0, 0)
 
-while not window_should_close()
-  const dt = delta_time()
+snake = s.Snake(config.GRID_X / 2, config.GRID_Y / 2)
+food  = f.Food(0, 0)
 
-  update_snake(snake, dt)
-  if (snake.bodies[0].x == food.x and
-      snake.bodies[0].y == food.y)
-    push_snake_body(snake)
-    replace_food(food)
+while not rl.window_should_close()
+    dt = rl.delta_time()
 
-  begin_drawing()
-  clear_background(color(0, 0, 0, 255))
-  draw_food(food)
-  draw_snake(snake)
-  end_drawing()
+    snake..update(dt)
+    if snake.bodies[0].x == food.x and snake.bodies[0].y == food.y
+        snake..push_body()
+        food..replace()
 
-close_window()
+    rl.begin_drawing()
+    rl.clear_background(rl.Color(0, 0, 0, 255))
+    food..draw()
+    snake..draw()
+    rl.end_drawing()
+
+rl.close_window()
